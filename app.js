@@ -7,7 +7,7 @@ const Time = require('./models/Time.js');
 const cron = require('node-cron');
 const fs = require('fs');
 const Stat = require('./models/Stat.js');
-const ifconfig = require('./ifconfig');
+const Annonce = require('./models/Annonce.js');
 
 
   
@@ -74,29 +74,24 @@ cron.schedule('0 */1 * * *', async function() {
 
 
   app.use(async (req, res, next) => {
-	//log('Execution' + new Date());
+
+	result = await scrapperGreenmoveData.play();
+	statsAnnonces= result.annonces;
+	result=result.stat;
+	log('RESULT'+JSON.stringify(result));
+	log('STATS ANNONCES'+JSON.stringify(statsAnnonces));
+
+	let statToSave = new Stat({annoncesOnline:result[0],contactGenerated:result[1],views:result[2],intention:result[3],mail:result[4],date:result[5]});
+	await statToSave.save().then(log('Statistiques quotidiennes sauvegardés')).catch(error => log(error));
+	let annonces = new Annonce({annonce:[],date:''});
+	statsAnnonces.forEach(annonce => {
+		log(JSON.stringify(annonce));
+		annonces.annonce.push({title:annonce.title,totalVues:annonce.totalVues,totalFavoris:annonce.totalFavoris,totalMessages:annonce.totalMessages,prix:annonce.prix,publication:annonce.publication,ref:annonce.ref,options:annonce.options});
+		annonces.date=annonce.date;
+	});
 	
-	//result = await ifconfig.play();
-	//	res.status(201).sendFile('/nodeserverlbc/log.txt');
-	log('Execution' + new Date());
-	try {
-	result = await scrapperLBC.play();
-	}
-	catch (error){
-		log('FAILLURE: '+ error);
-	}
-	var isNotEmpty= result.data.length>0;
-	saving(result.data);
-	
-	if (isNotEmpty){
-	await Time.deleteOne().then(() => log('Objet supprimé!')).catch(error => log(error));
-	
-	var lastTime = result.data.shift().time;
-	lastTime= new Time({time:lastTime});
-	await lastTime.save().then(() => log('Temps sauvegardé')).catch(error => log(error));
-	}
-	else {
-	log('Aucune nouvelle annonce');}
+	await annonces.save().then(log('Statistiques des annonces sauvegardés')).catch(error => log(error));
+
 
 	
 	
