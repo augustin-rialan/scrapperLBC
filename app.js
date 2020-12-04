@@ -81,12 +81,12 @@ cron.schedule('0 */1 * * *', async function() {
 	log('RESULT'+JSON.stringify(result));
 	log('STATS ANNONCES'+JSON.stringify(statsAnnonces));
 
-	let statToSave = new Stat({annoncesOnline:result[0],contactGenerated:result[1],views:result[2],intention:result[3],mail:result[4],date:result[5]});
+	let statToSave = new Stat({annoncesOnline:result[0],favoris:result[1],contactGenerated:result[2],views:result[3],intention:result[4],mail:result[5],date:result[6]});
 	await statToSave.save().then(log('Statistiques quotidiennes sauvegardés')).catch(error => log(error));
 	let annonces = new Annonce({annonce:[],date:''});
 	statsAnnonces.forEach(annonce => {
 		log(JSON.stringify(annonce));
-		annonces.annonce.push({title:annonce.title,totalVues:annonce.totalVues,totalFavoris:annonce.totalFavoris,totalMessages:annonce.totalMessages,prix:annonce.prix,publication:annonce.publication,ref:annonce.ref,options:annonce.options});
+		annonces.annonce.push({title:annonce.title,totalVues:annonce.totalVues,totalFavoris:annonce.totalFavoris,totalMessages:annonce.totalMessages,prix:annonce.prix,publication:annonce.publication,ref:annonce.ref,options:annonce.options,joursRestants:annonce.joursRestants,nbApparitions:annonce.nbApparitions,Remontee:annonce.remontee});
 		annonces.date=annonce.date;
 	});
 	
